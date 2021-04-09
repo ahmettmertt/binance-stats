@@ -85,6 +85,8 @@ var priceChart = new Chart(document.getElementById('priceChart'),config_prices);
 var volumeChart = new Chart(document.getElementById('volumeChart'),config_volumes);
 
 
+setInterval(function(){
+
 fetch('http://localhost:8080/data')
 .then(response => response.json())
 .then(data => {
@@ -124,6 +126,8 @@ fetch('http://localhost:8080/data')
 	});
 	volumeChart.update();
 });
+
+}, 60000); // 1 min
 
 function timestamp_to_time(timestamp){
   var h = new Date(timestamp).getHours();
