@@ -2,19 +2,24 @@
 
 const express = require('express');
 const path = require('path')
+const Binance = require('node-binance-api');
+const auth = require('./auth');
 
 // Constants
 const PORT = 8080;
 const HOST = '0.0.0.0';
 
-
-const Binance = require('node-binance-api');
-/*const binance = new Binance().options({
-  APIKEY: '<key>',
-  APISECRET: '<secret>'
-});
-*/
-const binance = new Binance();
+var binance;
+var logged_in = false;
+if(auth && auth.api_key && auth.api_secret){
+  binance = new Binance().options({
+	APIKEY: auth.api_key,
+	APISECRET: auth.api_secret
+  });
+  logged_in = true;
+}else{
+  binance = new Binance();
+}
 
 
 // App
@@ -29,9 +34,9 @@ app.get('/data', (req, res) => {
   // Getting latest price of a symbol
   binance.prices(function(error, ticker) {
 	//console.log("prices()", ticker);
-	console.log("Price of BNB: ", ticker.HOTUSDT);
-	hot_b = ticker.HOTUSDT;
-	res.send('Hello World'+hot_b);
+	console.log("Price of BTC: ", ticker.BTCUSDT);
+	hot_b = ticker.BTCUSDT;
+	res.send(hot_b);
   });
 
   // Getting list of current balances
