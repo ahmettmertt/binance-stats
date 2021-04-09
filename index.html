@@ -127,7 +127,7 @@ fetch('http://localhost:8080/data')
 	volumeChart.update();
 });
 
-}, 60000); // 1 min
+}(), 60000); // 1 min -- () makes it run immediately at the first time
 
 function timestamp_to_time(timestamp){
   var h = new Date(timestamp).getHours();
