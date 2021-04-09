@@ -31,13 +31,22 @@ app.get('/', (req, res) => {
 app.get('/data', (req, res) => {
   var hot_b = 0;
 
+  // Periods: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,1M
+  binance.candlesticks("HOTUSDT", "1m", function(error, ticks) {
+	console.log("candlesticks()", ticks);
+	let last_tick = ticks[ticks.length - 1];
+	let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = last_tick;
+	//console.log("BNBBTC last close: "+close);
+        res.send(ticks);
+  });
+
   // Getting latest price of a symbol
-  binance.prices(function(error, ticker) {
+  /*binance.prices(function(error, ticker) {
 	//console.log("prices()", ticker);
 	console.log("Price of BTC: ", ticker.BTCUSDT);
 	hot_b = ticker.BTCUSDT;
 	res.send(hot_b);
-  });
+  });*/
 
   // Getting list of current balances
   /*binance.balance(function(error, balances) {

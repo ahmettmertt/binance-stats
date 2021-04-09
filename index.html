@@ -14,9 +14,10 @@
 
     <div class="container">
         <div class="jumbotron">
-            <h1>res.sendFile() Works!</h1>
+            <h1>HOTUSDT</h1>
 	    <div>
-		<canvas id="myChart"></canvas>
+		<canvas id="priceChart"></canvas>
+		<canvas id="volumeChart"></canvas>
 	    </div>
         </div>
     </div>
@@ -30,26 +31,110 @@ const labels = [
   'May',
   'June',
 ];
-const data = {
+const data_prices = {
   labels: labels,
   datasets: [{
-    label: 'My First dataset',
+    type: 'line',
+    label: 'Price',
+    backgroundColor: 'rgb(255, 99, 132)',
+    borderColor: 'rgb(255, 99, 132)',
+    data: [0, 10, 5, 2, 20, 30, 45],
+  }]
+};
+const data_volumes = {
+  labels: labels,
+  datasets: [{
+    type: 'bar',
+    label: 'Volume',
     backgroundColor: 'rgb(255, 99, 132)',
     borderColor: 'rgb(255, 99, 132)',
     data: [0, 10, 5, 2, 20, 30, 45],
   }]
 };
 
-const config = {
+const config_prices = {
   type: 'line',
-  data,
-  options: {}
+  data: data_prices,
+  options: {
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        var label = context.dataset.label || '';
+
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += (context.parsed.y).toFixed(8);
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+  }
+};
+const config_volumes = {
+  type: 'line',
+  data: data_volumes,
+  options: { }
 };
 
-var myChart = new Chart(
-    document.getElementById('myChart'),
-    config
-);
+var priceChart = new Chart(document.getElementById('priceChart'),config_prices);
+var volumeChart = new Chart(document.getElementById('volumeChart'),config_volumes);
+
+
+fetch('http://localhost:8080/data')
+.then(response => response.json())
+.then(data => {
+	//console.log(data[0][0]);
+	var labels = [];
+	var prices = [];
+	var volumes = [];
+	data = data.slice(380);
+	data.forEach(element => {
+		[time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = element;
+		avg_price = ((parseFloat(low)+parseFloat(high))/2);
+		labels.push(timestamp_to_time(time));
+		prices.push(avg_price);
+		volumes.push(volume);
+	});
+	priceChart.data.labels = labels;
+	priceChart.data.datasets.forEach((dataset) => {
+		if(dataset.label == "Price"){
+			dataset.data = prices;
+			min_price = Math.min.apply(null,prices);
+			max_price = Math.max.apply(null,prices);
+			priceChart.options.scales.y.min = min_price;
+			priceChart.options.scales.y.max = max_price;
+		}
+	});
+	priceChart.update();
+
+	volumeChart.data.labels = labels;
+	volumeChart.data.datasets.forEach((dataset) => {
+		if(dataset.label == "Volume"){
+			dataset.data = volumes;
+			min_price = Math.min.apply(null,volumes);
+			max_price = Math.max.apply(null,volumes);
+			volumeChart.options.scales.y.min = min_price;
+			volumeChart.options.scales.y.max = max_price;
+		}
+	});
+	volumeChart.update();
+});
+
+function timestamp_to_time(timestamp){
+  var h = new Date(timestamp).getHours();
+  var m = new Date(timestamp).getMinutes();
+
+  h = (h<10) ? '0' + h : h;
+  m = (m<10) ? '0' + m : m;
+
+  return h + ':' + m;
+}
+
 </script>
 
 </body>
