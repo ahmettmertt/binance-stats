@@ -32,8 +32,8 @@ app.get('/data', (req, res) => {
   var hot_b = 0;
 
   // Periods: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,1M
-  binance.candlesticks("HOTUSDT", "1m", function(error, ticks) {
-	console.log("candlesticks()", ticks);
+  binance.candlesticks("HOTUSDT", "1d", function(error, ticks) {
+	//console.log("candlesticks()", ticks);
 	let last_tick = ticks[ticks.length - 1];
 	let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = last_tick;
 	//console.log("BNBBTC last close: "+close);

@@ -16,8 +16,12 @@
         <div class="jumbotron">
             <h1>HOTUSDT</h1>
 	    <div>
-		<canvas id="priceChart"></canvas>
-		<canvas id="volumeChart"></canvas>
+		<div style="height:300px;width:500px;">
+			<canvas id="priceChart"></canvas>
+		</div>
+		<div style="height:100px;width:500px;">
+			<canvas id="volumeChart"></canvas>
+		</div>
 	    </div>
         </div>
     </div>
@@ -72,13 +76,21 @@ const config_prices = {
                     }
                 }
             }
-        }
+        },
+        maintainAspectRatio: false
   }
 };
 const config_volumes = {
   type: 'line',
   data: data_volumes,
-  options: { }
+  options: {
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    maintainAspectRatio: false
+  }
 };
 
 var priceChart = new Chart(document.getElementById('priceChart'),config_prices);
@@ -94,14 +106,17 @@ fetch('http://localhost:8080/data')
 	var labels = [];
 	var prices = [];
 	var volumes = [];
-	data = data.slice(380);
+	//data = data.slice(380);
 	data.forEach(element => {
 		[time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = element;
 		avg_price = ((parseFloat(low)+parseFloat(high))/2);
-		labels.push(timestamp_to_time(time));
+		labels.push(time);
 		prices.push(avg_price);
-		volumes.push(volume);
+		volumes.push((volume/1000000));
 	});
+	labels = reduce_items_last(labels,5,timestamp_to_time);
+	prices = reduce_items_last(prices,5);
+	volumes = reduce_items_last(volumes,5);
 	priceChart.data.labels = labels;
 	priceChart.data.datasets.forEach((dataset) => {
 		if(dataset.label == "Price"){
@@ -130,13 +145,48 @@ fetch('http://localhost:8080/data')
 }(), 60000); // 1 min -- () makes it run immediately at the first time
 
 function timestamp_to_time(timestamp){
+  var y = new Date(timestamp).getFullYear();
+  var mo = new Date(timestamp).getMonth()+1;
+  var da = new Date(timestamp).getDate();
   var h = new Date(timestamp).getHours();
   var m = new Date(timestamp).getMinutes();
 
+  mo = (mo<10) ? '0' + mo : mo;
+  da = (da<10) ? '0' + da : da;
   h = (h<10) ? '0' + h : h;
   m = (m<10) ? '0' + m : m;
 
-  return h + ':' + m;
+  return y + '-' + mo + '-' + da + ' ' + h + ':' + m;
+}
+
+function reduce_items_avg(set, slice, postProcess = null){
+  var new_set = [];
+  var k = 0;
+  for(i=0;i<set.length;i+=slice){
+    var total = 0,avg=0;
+    for(j=0;j<slice;j++){
+      total += set[i+j];
+    }
+    avg = total/slice;
+    if(postProcess){
+      avg = postProcess(avg);
+    }
+    new_set.push(avg);
+  }
+  return new_set;
+}
+
+function reduce_items_last(set, slice, postProcess = null){
+  var new_set = [];
+  var k = 0;
+  for(i=0;i<set.length;i+=slice){
+    var item=set[i+slice-1];
+    if(postProcess){
+      item = postProcess(item);
+    }
+    new_set.push(item);
+  }
+  return new_set;
 }
 
 </script>
